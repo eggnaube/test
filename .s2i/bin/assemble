@@ -41,7 +41,7 @@ if [ -f composer.json ]; then
 fi
 
 status "Installing Node packages..."
-npm install --no-optional
+npm install --no-optional --ignore-scripts
 status "Installing Bower packages..."
 #bower install --allow-root
 status "Running Gulp..."
