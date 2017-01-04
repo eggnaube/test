@@ -33,7 +33,7 @@ if [ -f composer.json ]; then
   fi
 
   # Install App dependencies using Composer
-  ./composer.phar install --no-interaction --no-ansi --optimize-autoloader
+  # ./composer.phar install --no-interaction --no-ansi --optimize-autoloader
 
   if [ ! -f composer.lock ]; then
     echo -e "\nConsider adding a 'composer.lock' file into your source repository.\n"
@@ -43,12 +43,12 @@ fi
 status "Installing Node packages..."
 npm install --no-optional
 status "Installing Bower packages..."
-bower install --allow-root
+#bower install --allow-root
 status "Running Gulp..."
 gulp --production
 status "Assembly caches..."
-php artisan config:cache
-php artisan route:cache
+#php artisan config:cache
+#php artisan route:cache
 
 status "Fixing source permissions..."
 chgrp -RL 0 .
