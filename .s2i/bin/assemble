@@ -1,0 +1,57 @@
+#!/bin/bash -e
+
+set -e
+
+shopt -s dotglob
+
+function status {
+  echo -e "\e[33m----> [$(date +%T)] $@\e[0m"
+}
+status "Installing application source..."
+mv /tmp/src/* ./
+
+# Restore artifacts from the previous build (if they exist).
+#
+if [ "$(ls /tmp/artifacts/ 2>/dev/null)" ]; then
+  status "Restoring build artifacts..."
+  mv /tmp/artifacts/node_modules/ ./
+  mv /tmp/artifacts/bower_components/ ./
+  mv /tmp/artifacts/vendor/ ./
+fi
+
+status "Building application from source..."
+
+if [ -f composer.json ]; then
+  echo "Found 'composer.json', installing dependencies using composer.phar... "
+
+  # Install Composer
+  php -r "readfile('https://getcomposer.org/installer');" | php
+
+  # Change the repo mirror if provided
+  if [ -n "$COMPOSER_MIRROR" ]; then
+    ./composer.phar config -g repositories.packagist composer $COMPOSER_MIRROR
+  fi
+
+  # Install App dependencies using Composer
+  ./composer.phar install --no-interaction --no-ansi --optimize-autoloader
+
+  if [ ! -f composer.lock ]; then
+    echo -e "\nConsider adding a 'composer.lock' file into your source repository.\n"
+  fi
+fi
+
+status "Installing Node packages..."
+npm install --no-optional
+status "Installing Bower packages..."
+bower install --allow-root
+status "Running Gulp..."
+gulp --production
+status "Assembly caches..."
+php artisan config:cache
+php artisan route:cache
+
+status "Fixing source permissions..."
+chgrp -RL 0 .
+chmod -R g+rwX .
+
+status "All done"
